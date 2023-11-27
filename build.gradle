@@ -1,0 +1,49 @@
+plugins {
+    id 'java'
+    id 'eclipse'
+    id 'war'
+}
+
+repositories {
+    jcenter()
+}
+
+dependencies {
+    implementation 'javax.servlet:javax.servlet-api:4.0.1'
+}
+
+sourceSets {
+    main {
+        java.srcDirs = ['admin/src/main/java', 'services/src/main/java', 'utils/src/main/java', 'web/src/main/java']
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+test {
+    dependsOn 'compileJava'
+    testClassesDirs = fileTree(dir: 'build/classes/main', include: '**/*Test.class')
+    classpath += sourceSets.main.output + sourceSets.test.output
+    reports {
+        junitXml {
+            destination = file("$buildDir/build")
+        }
+    }
+}
+
+war {
+    dependsOn 'test'
+    archiveFileName = 'web.war'
+    from 'web/src/main/webapp'
+}
+
+task buildAdminJar(type: Jar) {
+    dependsOn 'test'
+    archiveFileName = 'admin.jar'
+    from sourceSets.main.output
+    manifest {
+        attributes 'Main-Class': 'com.builders.admin.AdminEntryPoint'
+    }
+}
